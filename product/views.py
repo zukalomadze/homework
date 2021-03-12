@@ -26,7 +26,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filter_fields = ['category', 'price']
     search_fields = ['title']
-    permission_classes = [IsAdminUserOrReadOnly]
+    # permission_classes = [IsAdminUserOrReadOnly]
 
     serializer_action = {
         'create': CreateProductSerializer,
@@ -64,10 +64,7 @@ class CartItemViewSet(viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
 
 
-class CartViewSet(mixins.CreateModelMixin,
-                  mixins.RetrieveModelMixin,
-                  mixins.UpdateModelMixin,
-                  mixins.DestroyModelMixin,
+class CartViewSet(mixins.RetrieveModelMixin,
                   GenericViewSet):
     queryset = Cart.objects.all()
     serializer_class = CartSerializer
@@ -79,6 +76,5 @@ class CartViewSet(mixins.CreateModelMixin,
         data = {
             'text': 'Hello World'
         }
-        # response = requests.post('https://hooks.slack.com/services/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',
-        #                          json=data)
+
         return Response(data)
