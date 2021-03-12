@@ -1,4 +1,3 @@
-from decimal import Decimal
 
 from django.db import models
 from django.db.models import Sum, F
@@ -44,6 +43,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
 
     class Meta:
         model = CartItem
@@ -56,9 +56,17 @@ class CartSerializer(serializers.ModelSerializer):
 
     def get_total_cost(self, obj):
         total_price = CartItem.objects.filter(cart=obj, active=True,).\
-            aggregate(total_price=Sum(F('product__price') * F('quantity'), output_field=models.DecimalField()))['total_price']
+            aggregate(total_price=Sum(F('product__price') * F('quantity'),
+                                      output_field=models.DecimalField()))['total_price']
         return total_price
 
     class Meta:
         model = Cart
         fields = ['id', 'items', 'total_cost']
+
+
+class AddToCartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CartItem
+        fields = ['quantity']

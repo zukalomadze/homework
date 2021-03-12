@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 from product.models import Category, Product, Tag, CartItem, Cart
 from product.permissions import IsAdminUserOrReadOnly, IsOwner
 from product.serializers import CategorySerializer, ProductSerializer, TagSerializer, CartItemSerializer, \
-    CartSerializer, CreateProductSerializer
+    CartSerializer, CreateProductSerializer, AddToCartSerializer
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -39,19 +39,15 @@ class ProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], default_serializer_class=AddToCartSerializer)
     def add_to_cart(self, request, *args, **kwargs):
-        cart = Cart.objects.filter(owner=request.user).get()
-        product = self.get_object()
-        quantity = self.request.data.get('quantity', 1)
-        data = {'product': product,
-                'active': True,
-                'order': product.pk,
-                'cart': cart,
-                'quantity': quantity,
-                }
-        CartItem.objects.create(**data)
-        return Response({'product': reverse('product-list', request=request)})
+        serializer = AddToCartSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(cart=request.user.cart,
+                            product=self.get_object(),
+                            order=self.get_object().pk,
+                            active=True,)
+        return Response({'message': "Item Successfully added to cart"})
 
 
 class TagViewSet(viewsets.ModelViewSet):
