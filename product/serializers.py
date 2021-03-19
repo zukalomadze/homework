@@ -1,5 +1,4 @@
-
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Sum, F
 from rest_framework import serializers
 
@@ -36,10 +35,25 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class CreateProductSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True)
 
     class Meta:
         model = Product
         fields = ['id', 'title', 'slug', 'price', 'description', 'is_published', 'category', 'tag']
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags')
+
+        tag_list = []
+        for tag in tags:
+            title = tag.pop('title')
+            tag_list.append(Tag(title=title))
+
+        with transaction.atomic():
+            tag_object = Tag.objects.bulk_create(tag_list)
+            product = self.Meta.model.objects.create(**validated_data)
+            product.tag.set(tag_object)
+        return product
 
 
 class CartItemSerializer(serializers.ModelSerializer):

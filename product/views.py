@@ -59,6 +59,8 @@ class CartItemViewSet(viewsets.ModelViewSet):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
 
+    #@TODO reorder
+
 
 class CartViewSet(mixins.RetrieveModelMixin,
                   GenericViewSet):
