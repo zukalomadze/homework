@@ -50,10 +50,11 @@ class CreateProductSerializer(serializers.ModelSerializer):
             tag_list.append(Tag(title=title))
 
         with transaction.atomic():
-            tag_object = Tag.objects.bulk_create(tag_list)
-            product = self.Meta.model.objects.create(**validated_data)
-            product.tag.set(tag_object)
-        return product
+            instance = super().create(validated_data)
+            if tag_list:
+                tag_object = Tag.objects.bulk_create(tag_list)
+                instance.tag.set(tag_object)
+        return instance
 
 
 class CartItemSerializer(serializers.ModelSerializer):
